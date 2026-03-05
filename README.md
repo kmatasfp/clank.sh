@@ -1,4 +1,4 @@
-# clank.sh — v14
+# clank.sh
 
 The Unix shell is the most durable human-computer interface ever built. Decades of tooling, documentation, and institutional knowledge exist around it. AI systems, by contrast, are stateless, fragile, and hard to compose with existing workflows.
 
