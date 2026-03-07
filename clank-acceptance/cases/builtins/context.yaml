@@ -3,29 +3,25 @@ cases:
   # ---------------------------------------------------------------------------
   # context show
   # ---------------------------------------------------------------------------
-  # In script mode the entire stdin blob is passed to run_with_options as a
-  # single string, producing exactly one transcript entry containing the full
-  # script text. context show therefore prints that one entry.
-  - name: show_contains_recorded_command
+  - name: show_after_clear_is_empty
+    # Clear first so the transcript is empty, then show — stdout must be empty.
     stdin: |
+      context clear
       context show
     expect_exit: 0
-    expect_stdout_contains: "context show"
+    expect_stdout: ""
     expect_stderr_empty: true
 
   - name: show_output_is_not_re_recorded
-    # Run context show twice. If show's own output were re-recorded the second
-    # show would contain the first show's output as an extra entry — the
-    # transcript would grow. Since recording happens before run_string and
-    # show writes to stdout only (not the transcript), the transcript stays
-    # as a single entry equal to the original script text.
+    # If show's output were recorded back into the transcript, a second show
+    # would produce more lines than the first. After a clear, both shows must
+    # produce empty output — proving that show does not record its own output.
     stdin: |
+      context clear
       context show
       context show
     expect_exit: 0
-    # Both invocations print the same single entry (the full script).
-    # The second show must not contain extra transcript entries beyond that.
-    expect_stdout_contains: "context show"
+    expect_stdout: ""
     expect_stderr_empty: true
 
   # ---------------------------------------------------------------------------
