@@ -1,14 +1,8 @@
-//! clank-core — the reusable shell logic for clank.
+//! clank-core — shell lifecycle and public API for clank.
 //!
-//! This crate is the library heart of clank. It wraps [`brush_core`] with
-//! clank-specific defaults and exposes a small, stable public API used by:
-//!
-//! - `clank-shell` (the binary entry point)
-//! - `clank-core/tests/` (integration tests)
-//! - Future embedders and tooling
-//!
-//! All direct `brush_core` imports live here. No other crate in the workspace
-//! depends on `brush_core` directly.
+//! Wraps [`brush_core`] with clank-specific defaults and exposes a small,
+//! stable public API used by `clank-shell`, integration tests, and future
+//! embedders.
 
 use brush_builtins::{default_builtins, BuiltinSet};
 pub use brush_core::{CreateOptions, Error, Shell};
@@ -247,7 +241,10 @@ mod tests {
         let code = run_interactive(&mut shell, input, std::io::sink())
             .await
             .expect("run_interactive should not error");
-        assert_ne!(code, 0, "last command was false; exit code should be nonzero");
+        assert_ne!(
+            code, 0,
+            "last command was false; exit code should be nonzero"
+        );
     }
 
     // --- run() behaviour ---
