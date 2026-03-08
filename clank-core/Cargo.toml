@@ -7,6 +7,7 @@ license.workspace = true
 [dependencies]
 clank-builtins    = { path = "../clank-builtins" }
 clank-transcript  = { path = "../clank-transcript" }
+clank-ask         = { path = "../clank-ask" }
 brush-core     = "0.4"
 brush-parser   = "0.3"
 brush-builtins = "0.1"

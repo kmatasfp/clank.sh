@@ -422,6 +422,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "clank-ask"
+version = "0.1.0"
+dependencies = [
+ "brush-core",
+ "clank-http",
+ "clank-provider",
+ "clank-transcript",
+ "tokio",
+]
+
+[[package]]
 name = "clank-builtins"
 version = "0.1.0"
 dependencies = [
@@ -441,6 +452,7 @@ dependencies = [
  "brush-core",
  "brush-parser",
  "chrono",
+ "clank-ask",
  "clank-builtins",
  "clank-transcript",
  "tokio",

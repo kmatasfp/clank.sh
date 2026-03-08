@@ -137,6 +137,11 @@ pub static MANIFEST_REGISTRY: &[CommandManifest] = &[
     },
     // subprocess: isolated execution
     CommandManifest {
+        name: "ask",
+        scope: ExecutionScope::Subprocess,
+        redaction_rules: &[],
+    },
+    CommandManifest {
         name: "cat",
         scope: ExecutionScope::Subprocess,
         redaction_rules: &[],
@@ -342,15 +347,25 @@ fn summarize_transcript(context: ExecutionContext<'_>) -> ExecutionResult {
         },
     ];
 
-    // `block_in_place` yields the current thread to the tokio scheduler while
-    // the async future runs on the runtime.  This is required when called from
-    // a synchronous context that is already executing inside a tokio runtime
-    // (e.g. integration tests or brush-core's async executor).  Plain
-    // `block_on` would panic in that situation with "Cannot start a runtime
-    // from within a runtime".
-    let complete_result = tokio::task::block_in_place(|| {
-        tokio::runtime::Handle::current().block_on(provider.complete(&messages))
-    });
+    // Run the async provider call on a dedicated OS thread with its own
+    // single-thread tokio runtime.  brush-core uses `Handle::current().block_on`
+    // internally, so `block_in_place` on the same thread deadlocks.  A fresh
+    // thread with a fresh runtime has no entanglement with the outer runtime.
+    let complete_result = {
+        let (tx, rx) = std::sync::mpsc::channel();
+        std::thread::spawn(move || {
+            let rt = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .expect("provider runtime should build");
+            let _ = tx.send(rt.block_on(provider.complete(&messages)));
+        });
+        rx.recv().unwrap_or_else(|_| {
+            Err(clank_provider::ProviderError::Transport(
+                "provider thread panicked".into(),
+            ))
+        })
+    };
     match complete_result {
         Ok(summary) => {
             writeln!(context.stdout(), "{summary}").ok();
@@ -412,6 +427,7 @@ mod tests {
         ("unalias", ExecutionScope::ShellInternal),
         ("wait", ExecutionScope::ShellInternal),
         // subprocess
+        ("ask", ExecutionScope::Subprocess),
         ("cat", ExecutionScope::Subprocess),
         ("curl", ExecutionScope::Subprocess),
         ("find", ExecutionScope::Subprocess),
